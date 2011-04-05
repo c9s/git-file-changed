@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+use Git;
+use Getopt::Long;
+use Cwd;
+use File::Spec;
+
+# GistID: 900211
+
+$cwd = getcwd();
+$repo = Git->repository( $cwd );
+
+my $since;
+$result = GetOptions ("since=s" => \$since );
+$output = qx(git log --name-only --pretty="format:" --since "$since" | sort | uniq);
+@list = split /\n/,$output;
+$wc_path = $repo->wc_path;
+
+@list = map { File::Spec->join( $wc_path , $_ )  } @list;
+@list = grep { -f $_ } @list;  # filter files
+@list = map { substr $_, length($cwd) + 1 } @list;
+print join "\n",@list;
